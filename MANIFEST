@@ -1,0 +1,4 @@
+Makefile.PL
+MANIFEST
+lib/Dunce/Files.pm
+t/Files.t
