@@ -2,7 +2,7 @@ package Dunce::Files;
 
 use strict;
 use vars qw($VERSION @EXPORT);
-$VERSION = '0.01';
+$VERSION = '0.02';
 
 use base qw(Exporter);
 
@@ -19,7 +19,10 @@ Dunce::Files - Protects against sloppy use of files.
 
   # open() warns you that you forgot to check if it worked.
   open(FILE, $filename);
-  print <FILE>;
+  while( <FILE> ) {
+      chop;     # chop() warns you to use chomp() instead
+      print;
+  }
   exit;
 
   # *FILE will warn you that you forgot to close it.
@@ -33,7 +36,7 @@ world outside your program is a scary, unreliable place, and things
 you try to do with it might not always work.
 
 Dunce::Files makes trick versions of all file functions which do some
-basic sanity checking.  
+basic sanity checking.
 
 If used in void context (ie. you didn't check to see if it worked),
 they will throw a warning.  If the function returns a filehandle (like
@@ -48,6 +51,7 @@ The list of overridden functions is:
 
              chdir
              chmod
+             chop
              chown
              chroot
              dbmopen
@@ -73,34 +77,36 @@ The list of overridden functions is:
 =cut
 
 # Commonly abused file functions.
-@EXPORT = qw(
-             chdir
-             chmod
-             chown
-             chroot
-             dbmopen
-             flock
-             link
-             mkdir
-             open
-             opendir
-             read
-             rename
-             rmdir
-             seek
-             seekdir
-             symlink
-             syscall
-             sysseek
-             syswrite
-             truncate
-             unlink
-             write
-            );
+use vars qw(@File_Functions);
+@File_Functions= qw(
+                    chdir
+                    chmod
+                    chown
+                    chroot
+                    dbmopen
+                    flock
+                    link
+                    mkdir
+                    open
+                    opendir
+                    read
+                    rename
+                    rmdir
+                    seek
+                    seekdir
+                    symlink
+                    syscall
+                    sysseek
+                    syswrite
+                    truncate
+                    unlink
+                    write
+                   );
+@EXPORT = (@File_Functions, 'chop');
 
 use Function::Override;
 use Carp;
-foreach my $func (@EXPORT) {
+foreach my $func (@File_Functions) {
     override($func, sub { 
                        my $wantarray = (caller(1))[5];
                        carp "You didn't check if $func() succeeded"
@@ -108,6 +114,7 @@ foreach my $func (@EXPORT) {
                     }
             );
 }
+
 
 =pod
 
@@ -140,6 +147,31 @@ override('chmod',
                unless defined $wantarray;
          }
         );
+
+=pod
+
+=item B<chop>
+
+chop() works a little differently.  Using it in void context is fine,
+but if it looks like you're using it to strip newlines it will throw a
+warning reminding you about chomp().
+
+B<NOTE> chop() was non-overridable before 5.7.0, so this feature will
+only work on that perl or newer.
+
+=cut
+
+# Alas, chop isn't overridable before 5.7.0.
+override('chop',
+         sub {
+             # Hmm, should this be \n or (\012|\015)?
+             if( grep { /\n$/s } @_ ? @_ : $_ ) {
+                 carp "Looks like you're using chop() to strip newlines.  ".
+                      "Use chomp() instead.\n";
+             }
+         }
+        ) if $] >= 5.007;
+
 
 =pod
 
@@ -208,10 +240,17 @@ Turns out this is a useful feature.  If you close FILE the warning
 will go away, and you should have closed it in the first place.
 
 
+=head1 TODO
+
+Make a flag to have Dunce::Files die instead of just warning.
+
+Complete Function::Override so I can finish open() and opendir().
+
+
 =head1 AUTHOR
 
 Michael G Schwern <schwern@pobox.com> with help from crysflame and
-Simon Cozens.
+Simon Cozens.  Thanks to Jay A. Kreibich for the chop() idea.
 
 
 =head1 SEE ALSO
