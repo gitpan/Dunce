@@ -2,7 +2,7 @@ package Dunce::Files;
 
 use strict;
 use vars qw($VERSION @EXPORT);
-$VERSION = '0.02';
+$VERSION = '0.03';
 
 use base qw(Exporter);
 
@@ -161,8 +161,9 @@ only work on that perl or newer.
 
 =cut
 
-# Alas, chop isn't overridable before 5.7.0.
-override('chop',
+# Alas, chop often isn't overridable.
+if( prototype("CORE::chop") ) {
+    override('chop',
          sub {
              # Hmm, should this be \n or (\012|\015)?
              if( grep { /\n$/s } @_ ? @_ : $_ ) {
@@ -170,8 +171,8 @@ override('chop',
                       "Use chomp() instead.\n";
              }
          }
-        ) if $] >= 5.007;
-
+        );
+}
 
 =pod
 

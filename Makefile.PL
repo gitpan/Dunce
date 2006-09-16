@@ -30,9 +30,6 @@ WriteMakefile(
     VERSION_FROM    => "lib/$PACKAGE_FILE.pm",
     PREREQ_PM       => { 
                         Function::Override     => 0.01,
-                       },
-    'dist'          => { COMPRESS   => 'gzip -9',
-                         SUFFIX     => '.gz',
-                         DIST_DEFAULT   => 'all tardist',
+                        Test::More             => 0.42,
                        },
 );

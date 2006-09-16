@@ -1,0 +1,14 @@
+--- #YAML:1.0
+name:                Dunce
+version:             0.03
+abstract:            ~
+license:             unknown
+generated_by:        ExtUtils::MakeMaker version 6.30_03
+author:              ~
+distribution_type:   module
+requires:     
+    Function::Override:            0.01
+    Test::More:                    0.42
+meta-spec:
+    url: http://module-build.sourceforge.net/META-spec-new.html
+    version: 1.1
